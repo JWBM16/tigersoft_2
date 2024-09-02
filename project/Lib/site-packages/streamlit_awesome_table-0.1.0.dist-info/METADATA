@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: streamlit-awesome-table
+Version: 0.1.0
+Summary: Awesome Table is a component to display a table in Streamlit with search and order.
+Home-page: https://github.com/caiodearaujo/streamlit-awesome-table
+Author: Caio Fábio de Araujo
+Author-email: caiofaar@gmail.com
+License: MIT
+Platform: UNKNOWN
+Requires-Python: >=3.6
+Description-Content-Type: text/plain
+License-File: LICENSE
+Requires-Dist: streamlit (>=0.63)
+Requires-Dist: pandas
+
+Display a table with search and order components that will be display above the table or in sidebar.
+
