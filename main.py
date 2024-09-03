@@ -622,10 +622,10 @@ def advertencia(presupuesto_id):
         )
         with adv_cent:
             if st.button(" Si, Borrar ✅", key="adv_button_delete"):
-                with st.spinner("Borrando registro..."):
-                    time.sleep(5)
+                with st.spinner("Borrando registros..."):
+                    time.sleep(2)
                 st.write("Borrando Presupuesto")
-                time.sleep(5)
+                time.sleep(2)
                 borrar_presupuesto(budget_id)
             else:
                 with adv_der:
@@ -798,7 +798,7 @@ def novedades():
 
                     st.session_state.logged_in = True
 
-                    time.sleep(5)
+                    time.sleep(3)
                     st.rerun()
 
 
@@ -989,10 +989,6 @@ if selected and selected != []:
 # Inicializamos el estado de sesión para la página si no existe
 if "page" not in st.session_state:
     st.session_state.page = "log_in"
-# elif st.session_state.page:
-#     st.session_state.page = "Novedades"
-#     time.sleep(10)
-#     st.rerun()
 
 
 # Pagina Presupuestos
@@ -1974,7 +1970,6 @@ def presupuestos():
                                     )
                         with column_uno:
                             if st.button("💾 Guardar", key="save_button_budget_unique"):
-                                toast()
                                 presptosql(
                                     propietario_select,
                                     fecha_formateada,
@@ -1988,6 +1983,7 @@ def presupuestos():
                                     elemento_vehiculo_id,
                                     elemento_observaciones_veh,
                                 )
+                                toast()
                                 st.rerun()
 
                     # FIXME: INICIO DE TABLA AGGRID
@@ -3277,7 +3273,7 @@ def home():
                             # streamlit_space.space(container=None, lines=0)
 
                             st.markdown(
-                                f"<span style='color:blue;font-weight:bold;'>ID N° {current_user[0]+1} / Total Registros: {len(test_data_2)}</span>",
+                                f"<span style='color:blue;font-weight:bold;'>ID N° {current_user[0]} / Total Registros: {len(test_data_2)}</span>",
                                 unsafe_allow_html=True,
                             )
                         if not st.session_state.is_new_user:
@@ -3362,7 +3358,7 @@ def home():
                             boton_elimi_clien = st.button(
                                 "Eliminar", key="eliminar_cliente"
                             )
-                        identificador = current_user[0] - 1
+                        identificador = current_user[0]
                         if not st.session_state.is_saved:
                             if boton_1:
                                 toast()
@@ -3394,16 +3390,27 @@ def home():
                             column_tres,
                         ) = st.columns([4, 3, 4, 3, 1.7, 1.7])
                         with column_izq:
-                            # streamlit_space.space(container=None, lines=0)
+                            # Conectar a la base de datos SQLite (o crearla si no existe)
+                            conn = sqlite3.connect('jhotem.db')
 
-                            new_register = len(test_data_2) + 1
+                            # Crear un cursor para ejecutar consultas
+                            cursor = conn.cursor()
+
+                            # Ejecutar una consulta para encontrar el mayor número en la columna 'id'
+                            cursor.execute("SELECT MAX(id) FROM clientes")
+
+                            # Obtener el resultado de la consulta
+                            max_id = cursor.fetchone()[0]
+
+                            # Cerrar la conexión a la base de datos
+                            # conn.close()
+                            new_register = max_id + 1
                             st.markdown(
                                 f"<span style='font-size: 14px; color: blue; font-weight: bold;'>NUEVO CLIENTE SERÁ EL ID N° {new_register}</span>",
                                 unsafe_allow_html=True,
                             )
                         with column_der:
 
-                            new_register = len(test_data_2) + 1
                             st.markdown(
                                 "<span style='font-size: 16px; color: blue; font-weight: bold;'>FORMATO NUEVOS CLIENTES</span>",
                                 unsafe_allow_html=True,
@@ -3662,7 +3669,6 @@ def vehiculos():
         # conn.close()
 
     def save_new_vehicle(
-        new_register,
         selector_veh_new,
         marca_veh_new,
         modelo_veh_new,
@@ -3672,7 +3678,6 @@ def vehiculos():
         observaciones_veh_new,
         temporal_veh,
     ):
-        vehiculos_id = new_register
         marca = marca_veh_new
         modelo = modelo_veh_new
         year = int(year_veh_new)
@@ -3680,7 +3685,6 @@ def vehiculos():
         fecha = fecha_veh_new
         observaciones = observaciones_veh_new
 
-        # print(f"Esta es el dato del selector: {selector_veh_new}")
         
         # Busqueda del propietario (si este fue modificado)
         nombre_buscado = selector_veh_new
@@ -4003,6 +4007,20 @@ def vehiculos():
                             # streamlit_space.space(container=None, lines=0)
 
                             new_register = len(test_data_veh) + 1
+                            conn = sqlite3.connect('jhotem.db')
+
+                            # Crear un cursor para ejecutar consultas
+                            cursor = conn.cursor()
+
+                            # Ejecutar una consulta para encontrar el mayor número en la columna 'id'
+                            cursor.execute("SELECT MAX(vehiculos_id) FROM vehiculos")
+
+                            # Obtener el resultado de la consulta
+                            max_id = cursor.fetchone()[0]
+
+                            # Cerrar la conexión a la base de datos
+                            # conn.close()
+                            new_register = max_id + 1
                             st.markdown(
                                 f"<span style='font-size: 14px; color: blue; font-weight: bold;'>NUEVO VEHÍCULO SERÁ EL ID N° {new_register}</span>",
                                 unsafe_allow_html=True,
@@ -4056,7 +4074,6 @@ def vehiculos():
 
                                 st.session_state.is_saved = True
                                 save_new_vehicle(
-                                    new_register,
                                     selector_veh_new,
                                     marca_veh_new,
                                     modelo_veh_new,
@@ -4469,8 +4486,20 @@ def repuestos():
                         ) = st.columns([3, 0.5, 3, 1])
                         with column_izq:
                             # streamlit_space.space(container=None, lines=0)
+                            conn = sqlite3.connect('jhotem.db')
 
-                            new_register = len(test_data_rep) + 1
+                            # Crear un cursor para ejecutar consultas
+                            cursor = conn.cursor()
+
+                            # Ejecutar una consulta para encontrar el mayor número en la columna 'id'
+                            cursor.execute("SELECT MAX(Id_repuestos) FROM repuestos")
+
+                            # Obtener el resultado de la consulta
+                            max_id = cursor.fetchone()[0]
+
+                            # Cerrar la conexión a la base de datos
+                            # conn.close()
+                            new_register = max_id + 1
                             st.markdown(
                                 f"<span style='font-size: 14px; color: blue; font-weight: bold;'>NUEVO REPUESTO SERÁ EL ID N° {new_register}</span>",
                                 unsafe_allow_html=True,
