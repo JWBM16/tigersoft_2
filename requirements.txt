@@ -53,6 +53,7 @@ kiwisolver==1.4.5
 lazy_loader==0.4
 llvmlite==0.43.0
 lxml==5.2.2
+lz4==4.3.3
 Markdown==3.6
 markdown-it-py==3.0.0
 markdownlit==0.0.7
@@ -120,6 +121,7 @@ simpleicons==7.21.0
 six==1.16.0
 smmap==5.0.1
 soupsieve==2.5
+sqlitecloud==0.0.83
 st-annotated-text==4.0.1
 stack-data==0.6.3
 streamlit==1.37.0

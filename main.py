@@ -3,9 +3,12 @@ import hashlib
 import io
 import os
 import sqlite3
+import sqlitecloud
 import time
 from datetime import datetime
 from io import BytesIO
+from contextlib import contextmanager
+
 
 import extra_streamlit_components as stx
 import pandas as pd
@@ -113,16 +116,25 @@ if "df_modal" not in st.session_state:
 
 # FIXME: INCLUSION DE FUNCION QUE GUARDA VALORES EN TABLAS DEL PRESUPUESTO
 def generar_siguiente_id_presupuesto():
-    # Conectar a la base de datos
-    conn = sqlite3.connect("jhotem.db")
-    cursor = conn.cursor()
-
-    # Ejecutar la consulta para obtener el último IdPresupuesto
-    cursor.execute("SELECT MAX(IdPresupuesto) FROM Presupuesto")
-    last_id = cursor.fetchone()[0]
-
-    # Cerrar la conexión
-    # conn.close()
+    
+    @contextmanager
+    def open_db_connection_uno(db_name):
+        conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+        try:
+            yield conn
+        finally:
+            conn.close()
+            
+    db_name = 'jhotem.db'       
+    # Using the context manager to manage a database connection
+    with open_db_connection_uno('jhotem.db') as conn:
+        conn.execute(f"USE DATABASE {db_name}")
+        cursor = conn.execute("SELECT MAX(IdPresupuesto) FROM Presupuesto")
+        last_id = cursor.fetchone()[0]
+        print("FUNCIONO connection_uno")
+    
+    
+    
 
     if last_id is None:
         # Si no hay ningún ID, comenzar con 'P-0001'
@@ -162,10 +174,22 @@ def presptosql(
 
     # Función para generar el siguiente IdPresupuesto
     def generar_id_presupuesto():
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT MAX(IdPresupuesto) FROM Presupuesto")
-        last_id = cursor.fetchone()[0]
+        @contextmanager
+        def open_db_connection_dos(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_dos('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute("SELECT MAX(IdPresupuesto) FROM Presupuesto")
+            last_id = cursor.fetchone()[0]
+            print("FUNCIONO connection_dos")
+            
         if last_id is None:
             return "P-0001"
         else:
@@ -175,9 +199,20 @@ def presptosql(
 
     # Ejemplo de inserción de un nuevo presupuesto y detalles
     nuevo_id_presupuesto = generar_id_presupuesto()
-    conn = sqlite3.connect("jhotem.db")
-    cursor = conn.cursor()
-    cursor.execute(
+    
+    @contextmanager
+    def open_db_connection_tres(db_name):
+        conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+        try:
+            yield conn
+        finally:
+            conn.close()
+            
+    db_name = 'jhotem.db'       
+    # Using the context manager to manage a database connection
+    with open_db_connection_tres('jhotem.db') as conn:
+        conn.execute(f"USE DATABASE {db_name}")
+        cursor = conn.execute(
         """
     INSERT INTO Presupuesto (IdPresupuesto, vehiculo_id, Cliente_id, NombreCliente, Telefono, email, DatosVehiculos, Fecha, TotalCosto, TotalVenta, Ganancia, Observaciones, Estatus)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -198,25 +233,22 @@ def presptosql(
             "Creado",
         ),
     )
-
-    # Insertar detalles del presupuesto desde el dataframe
-    for index, row in df_presup.iterrows():
-        cursor.execute(
-            """
-        INSERT INTO DetallePresupuesto (IdPresupuesto, Descripcion, Costo, PrecioVenta)
-        VALUES (?, ?, ?, ?)
-        """,
-            (
-                nuevo_id_presupuesto,
-                row["Repuesto / Mano de Obra"],
-                row["Costo en USD"],
-                row["Precio Venta en USD"],
-            ),
-        )
-
-    # Guardar los cambios y cerrar la conexión
-    conn.commit()
-    # conn.close()
+        # Insertar detalles del presupuesto desde el dataframe
+        for index, row in df_presup.iterrows():
+            cursor.execute(
+                """
+            INSERT INTO DetallePresupuesto (IdPresupuesto, Descripcion, Costo, PrecioVenta)
+            VALUES (?, ?, ?, ?)
+            """,
+                (
+                    nuevo_id_presupuesto,
+                    row["Repuesto / Mano de Obra"],
+                    row["Costo en USD"],
+                    row["Precio Venta en USD"],
+                ),
+            )   
+    print("FUNCIONO connection_tres")
+    
     st.rerun()
 
 
@@ -303,12 +335,19 @@ def eliminar_ultima_fila(df_detalle):
 
 # Carga de datos a una lista desde la base de datos jhotem.db
 # Conectar a la base de datos
-conn = sqlite3.connect("jhotem.db")
-cursor = conn.cursor()
-
-# BUDGET: query cambiado 2024-08-06
-# Definir la consulta SQL en Vehiculos
-query = """
+@contextmanager
+def open_db_connection_cuatro(db_name):
+    conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+    try:
+        yield conn
+    finally:
+        conn.close()
+        
+db_name = 'jhotem.db'       
+# Using the context manager to manage a database connection
+with open_db_connection_cuatro('jhotem.db') as conn:
+    conn.execute(f"USE DATABASE {db_name}")
+    cursor = conn.execute("""
     SELECT 
         v.vehiculos_id, 
         c.id AS cliente_id,
@@ -327,11 +366,16 @@ query = """
         vehiculos v
     JOIN 
         clientes c ON v.cliente_id = c.id
-"""
+""")
+    results_conn_cuatro = cursor.fetchall()
+    
+    # Obtiene los nombres de las columnas
+    column_names = [description[0] for description in cursor.description]
+    
+    # Convierte los resultados en un DataFrame
+    df = pd.DataFrame(results_conn_cuatro, columns=column_names)
+    print("FUNCIONO connection_cuatro")
 
-# Ejecutar la consulta y cargar los resultados en un DataFrame
-df = pd.read_sql_query(query, conn)
-# print(df.head(10))
 
 # Crear una nueva columna 'nombre_completo' que combine 'nombre' y 'apellido' con un espacio
 df = df.assign(nombre_completo=df["nombre"] + " " + df["apellido"])
@@ -365,17 +409,33 @@ opciones_propietario = opciones_propietario.sort_values()
 
 # ---- QUERY Y DATAFRAME EN TABLA REPUESTOS ---#
 # Conectar a la base de datos
-conn = sqlite3.connect("jhotem.db")
-cursor = conn.cursor()
-
-query_rep = """ SELECT * FROM repuestos """
+@contextmanager
+def open_db_connection_cinco(db_name):
+    conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+    try:
+        yield conn
+    finally:
+        conn.close()
+        
+db_name = 'jhotem.db'       
+# Using the context manager to manage a database connection
+with open_db_connection_cinco('jhotem.db') as conn:
+    conn.execute(f"USE DATABASE {db_name}")
+    cursor = conn.execute("SELECT * FROM repuestos")
+    resultados_cinco = cursor.fetchall()
+    print("FUNCIONO connection_cinco")
+    
+    column_names_cinco = [description[0] for description in cursor.description]
+    df_repuestos = pd.DataFrame(resultados_cinco, columns=column_names_cinco)
+    opciones_repuestos = df_repuestos["Descripcion"].unique()
+    opciones_repuestos = pd.Series(opciones_repuestos)
+    opciones_repuestos = opciones_repuestos.sort_values()
 
 # Ejecutar la consulta y cargar los resultados en un DataFrame
-df_repuestos = pd.read_sql_query(query_rep, conn)
+# Obtiene los nombres de las columnas
 
-opciones_repuestos = df_repuestos["Descripcion"].unique()
-opciones_repuestos = pd.Series(opciones_repuestos)
-opciones_repuestos = opciones_repuestos.sort_values()
+
+
 
 df_filtered_repuestos = pd.DataFrame()
 repuesto_select_cambio = False
@@ -384,19 +444,31 @@ repuesto_select_cambio = False
 
 # ---- TEST PANDAS SQL ----#
 # Consulta para obtener los datos de la tabla vehiculos junto con el nombre del cliente
-cursor.execute(
+@contextmanager
+def open_db_connection_seis(db_name):
+    conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+    try:
+        yield conn
+    finally:
+        conn.close()
+        
+db_name = 'jhotem.db'       
+# Using the context manager to manage a database connection
+with open_db_connection_seis('jhotem.db') as conn:
+    conn.execute(f"USE DATABASE {db_name}")
+    cursor = conn.execute(
     """
     SELECT v.vehiculos_id, c.nombre, c.apellido, v.marca, v.modelo, v.year, v.placa, v.fecha_entrada, v.observaciones
     FROM vehiculos v
     JOIN clientes c ON v.cliente_id = c.id
 """
 )
-filas = cursor.fetchall()  # En filas no se obtiene el cliente Id
-# conn.close()
+    filas = cursor.fetchall()
+    print("FUNCIONO connection_seis")
+    # Nueva lista para almacenar los nombres y apellidos unidos
+    lista_1 = [f"{item[1]} {item[2]}" for item in filas]
 
 
-# Nueva lista para almacenar los nombres y apellidos unidos
-lista_1 = [f"{item[1]} {item[2]}" for item in filas]
 # ---- FIN TEST PANDAS SQL ----#
 
 # Obtener la fecha actual
@@ -408,13 +480,32 @@ fecha_formateada = fecha_actual.strftime("%Y-%m-%d")
 # BUDGET: Inclusion de todo un bloque de funciones y variable 2024-08-06
 
 # Conectar con la tabla 'Presupuestos'
-conn = sqlite3.connect("jhotem.db")
+@contextmanager
+def open_db_connection_siete(db_name):
+    conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+    try:
+        yield conn
+    finally:
+        conn.close()
+        
+db_name = 'jhotem.db'       
+# Using the context manager to manage a database connection
+with open_db_connection_siete('jhotem.db') as conn:
+    conn.execute(f"USE DATABASE {db_name}")
+    cursor = conn.execute(
+    "SELECT * FROM Presupuesto"
+)
+    filas_siete = cursor.fetchall()
+    print("FUNCIONO connection_siete")
+    column_names_siete = [description[0] for description in cursor.description]
 
-# FIXME: Consulta SQL para obtener todos los datos de la tabla Presupuesto
-query = "SELECT * FROM Presupuesto"
+# conn = sqlite3.connect("jhotem.db")
+
+# # FIXME: Consulta SQL para obtener todos los datos de la tabla Presupuesto
+# query = "SELECT * FROM Presupuesto"
 
 # Ejecutar la consulta y cargar los resultados en un DataFrame
-df_presupuestos = pd.read_sql_query(query, conn)
+df_presupuestos = pd.DataFrame(filas_siete, columns=column_names_siete)
 
 # Filtrar el DataFrame para obtener los registros con Estatus 'Aprobado'
 df_aprobados = df_presupuestos[df_presupuestos["Estatus"] == "Aprobado"]
@@ -505,52 +596,63 @@ formatter = {
 
 def borrar_presupuesto(id_presupuesto):
     # Conectar a la base de datos
-    conn = sqlite3.connect("jhotem.db")
-    cursor = conn.cursor()
-
-    try:
-        # Eliminar registros asociados en DetallePresupuesto
-        cursor.execute(
+    @contextmanager
+    def open_db_connection_ocho(db_name):
+        conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+        try:
+            yield conn
+        finally:
+            conn.close()
+            
+    db_name = 'jhotem.db'       
+    # Using the context manager to manage a database connection
+    with open_db_connection_ocho('jhotem.db') as conn:
+        conn.execute(f"USE DATABASE {db_name}")
+        try:
+            cursor = conn.execute(
             """
-        DELETE FROM DetallePresupuesto
-        WHERE IdPresupuesto = ?
-        """,
-            (id_presupuesto,),
-        )
+            DELETE FROM DetallePresupuesto
+            WHERE IdPresupuesto = ?
+            """,
+                (id_presupuesto,),
+            )
+            # Eliminar el registro en Presupuesto
+            cursor= conn.execute(
+                """
+            DELETE FROM Presupuesto
+            WHERE IdPresupuesto = ?
+            """,
+                (id_presupuesto,),
+            )
+            print("FUNCIONO connection_ocho")
 
-        # Eliminar el registro en Presupuesto
-        cursor.execute(
-            """
-        DELETE FROM Presupuesto
-        WHERE IdPresupuesto = ?
-        """,
-            (id_presupuesto,),
-        )
+        except sqlite3.Error as e:
+            print(f"Error al eliminar el presupuesto: {e}")
+            conn.rollback()
 
-        # Confirmar los cambios
-        conn.commit()
-        print(
-            f"Presupuesto con IdPresupuesto {id_presupuesto} y sus detalles han sido eliminados."
-        )
-
-    except sqlite3.Error as e:
-        print(f"Error al eliminar el presupuesto: {e}")
-        conn.rollback()
-
-    finally:
-        # Cerrar la conexión a la base de datos
-        # conn.close()
-        st.rerun()
+        finally:
+            # Cerrar la conexión a la base de datos
+            # conn.close()
+            st.rerun()
+    
 
 
 def aprobar_presupuesto(id_presupuesto):
     # Conectar a la base de datos
-    conn = sqlite3.connect("jhotem.db")
-    cursor = conn.cursor()
-
-    try:
-        # Actualizar el campo "Estatus" a "Aprobado" para el IdPresupuesto dado
-        cursor.execute(
+    @contextmanager
+    def open_db_connection_nueve(db_name):
+        conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+        try:
+            yield conn
+        finally:
+            conn.close()
+            
+    db_name = 'jhotem.db'       
+    # Using the context manager to manage a database connection
+    with open_db_connection_nueve('jhotem.db') as conn:
+        conn.execute(f"USE DATABASE {db_name}")
+        try:
+            cursor = conn.execute(
             """
         UPDATE Presupuesto
         SET Estatus = 'Aprobado'
@@ -558,20 +660,20 @@ def aprobar_presupuesto(id_presupuesto):
         """,
             (id_presupuesto,),
         )
+            # Confirmar los cambios
+            conn.commit()
+            print(f"Presupuesto con IdPresupuesto {id_presupuesto} ha sido aprobado.")
+            print("FUNCIONO connection_nueve")
 
-        # Confirmar los cambios
-        conn.commit()
-        print(f"Presupuesto con IdPresupuesto {id_presupuesto} ha sido aprobado.")
+        except sqlite3.Error as e:
+            print(f"Error al aprobar el presupuesto: {e}")
+            conn.rollback()
 
-    except sqlite3.Error as e:
-        print(f"Error al aprobar el presupuesto: {e}")
-        conn.rollback()
-
-    finally:
-        # Cerrar la conexión a la base de datos
-        # conn.close()
-        st.rerun()
-
+        finally:
+            # Cerrar la conexión a la base de datos
+            # conn.close()
+            st.rerun()
+    
 
 @st.dialog(" ", width="large")
 def advertencia(presupuesto_id):
@@ -675,24 +777,35 @@ def logout():
     st.session_state.page = "log_in"
     st.rerun()
 
-# Conectar a la base de datos SQLite
-conn = sqlite3.connect('jhotem.db')
-cursor = conn.cursor()
+@contextmanager
+def open_db_connection_diez(db_name):
+    conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+    try:
+        yield conn
+    finally:
+        conn.close()
+        
+db_name = 'jhotem.db'       
+# Using the context manager to manage a database connection
+with open_db_connection_diez('jhotem.db') as conn:
+    conn.execute(f"USE DATABASE {db_name}")
+    cursor = conn.execute("SELECT usuario, clave FROM usuarios WHERE estatus = 'activo'")
+    usuarios_activos = cursor.fetchall()
+    print("FUNCIONO conexion diez")
 
-# Consultar los usuarios activos
-cursor.execute("SELECT usuario, clave FROM usuarios WHERE estatus = 'activo'")
-usuarios_activos = cursor.fetchall()
+# Conectar a la base de datos SQLite
+# conn = sqlite3.connect('jhotem.db')
+# cursor = conn.cursor()
+
+# # Consultar los usuarios activos
+# cursor.execute("SELECT usuario, clave FROM usuarios WHERE estatus = 'activo'")
+# usuarios_activos = cursor.fetchall()
 
 # Crear la base de datos de usuarios simulada
 users_db = {}
 for usuario, clave in usuarios_activos:
     users_db[usuario] = hash_password(clave)
 
-# Base de datos de usuarios simulada
-# users_db = {
-#     "usuario1": hash_password("prueba123"),
-#     "usuario2": hash_password("prueba123"),
-# }
 
 
 def login_incorrect():
@@ -1382,7 +1495,19 @@ def presupuestos():
 
                             # FIXME: Función para obtener un presupuesto con sus detalles
                             def obtener_presupuesto_con_detalles(id_presupuesto):
-                                cursor.execute(
+                                @contextmanager
+                                def open_db_connection_once(db_name):
+                                    conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+                                    try:
+                                        yield conn
+                                    finally:
+                                        conn.close()
+                                        
+                                db_name = 'jhotem.db'       
+                                # Using the context manager to manage a database connection
+                                with open_db_connection_once('jhotem.db') as conn:
+                                    conn.execute(f"USE DATABASE {db_name}")
+                                    cursor = conn.execute(
                                     """
                                 SELECT p.*, d.IdDetalle, d.Descripcion, d.Costo, d.PrecioVenta
                                 FROM Presupuesto p
@@ -1391,7 +1516,10 @@ def presupuestos():
                                 """,
                                     (id_presupuesto,),
                                 )
-                                return cursor.fetchall()
+                                    return cursor.fetchall()
+                                    print("FUNCIONO connection_once")
+                                
+                                
 
                             # Función para generar el contenido del PDF
                             def generate_pdf(
@@ -2416,12 +2544,29 @@ def presupuestos():
 def ajustes():
     # Carga de datos a una lista desde la base de datos jhotem.db
     # Conectar a la base de datos
-    conn = sqlite3.connect("jhotem.db")
-    cursor = conn.cursor()
+    @contextmanager
+    def open_db_connection_doce(db_name):
+        conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+        try:
+            yield conn
+        finally:
+            conn.close()
+            
+    db_name = 'jhotem.db'       
+    # Using the context manager to manage a database connection
+    with open_db_connection_doce('jhotem.db') as conn:
+        conn.execute(f"USE DATABASE {db_name}")
+        cursor = conn.execute("SELECT * FROM usuarios")
+        rows = cursor.fetchall()
+        print("FUNCIONO connection_doce")
     
-    # Cargar los datos de la tabla 'clientes'
-    cursor.execute("SELECT * FROM usuarios")
-    rows = cursor.fetchall()
+    
+    # conn = sqlite3.connect("jhotem.db")
+    # cursor = conn.cursor()
+    
+    # # Cargar los datos de la tabla 'clientes'
+    # cursor.execute("SELECT * FROM usuarios")
+    # rows = cursor.fetchall()
     
     test_data_usuarios = [list(row) for row in rows]
     # print(test_data_usuarios)
@@ -2467,16 +2612,27 @@ def ajustes():
     def delete_usuario(identificador):
         Id_usuario = int(identificador)
 
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-
-        cursor.execute(
+        @contextmanager
+        def open_db_connection_doce_mas_uno(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_doce_mas_uno('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute(
             """
             DELETE FROM usuarios
             WHERE id = ?
             """,
             (Id_usuario,),
         )
+            # rows = cursor.fetchall()
+            print("FUNCIONO connection_doce_mas_uno")
         
     def edit_user_usuario(
         usuario_edit,
@@ -2489,32 +2645,43 @@ def ajustes():
         estatus = estatus_edit
         Id_usuario = int(identificador)
 
-        conn = sqlite3.connect('jhotem.db')
-        cursor = conn.cursor()
-
-        try:
-            # Ejecutar la consulta para actualizar el registro
-            cursor.execute('''
+        @contextmanager
+        def open_db_connection_catorce(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_catorce('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute('''
             UPDATE usuarios
             SET usuario = ?, clave = ?, estatus = ?
             WHERE id = ?
             ''', (usuario, clave,estatus,Id_usuario))
-
-            # Confirmar los cambios
             conn.commit()
-            print("Credencial Actualizada Satisfactoriamente")
-        except sqlite3.Error as e:
-            st.error(f"Error al actualizar el usuario: {e}")
-        finally:
-            # Cerrar la conexión a la base de datos
-            cursor.close()
-            conn.close()
-
-        # Recargar los datos después de guardar el nuevo usuario
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM usuarios")
-        rows = cursor.fetchall()
+            
+            print("FUNCIONO connection_catorce")
+        
+        
+        @contextmanager
+        def open_db_connection_quince(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_quince('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute("SELECT * FROM usuarios")
+            rows = cursor.fetchall()
+            print("FUNCIONO connection_quince ")
         
     # Mostrar los datos del usuario actual
     if st.session_state.is_new_user_usuario:
@@ -2556,24 +2723,33 @@ def ajustes():
                     )
             def download_excel():
                 # Obtener el directorio actual del script
-                current_dir = os.path.dirname(os.path.abspath(__file__))
-
-                # Ruta de la base de datos relativa al directorio actual del script
-                ruta_base_de_datos = os.path.join(current_dir, "jhotem.db")
-
-                # Verificar si el archivo de la base de datos existe
-                if not os.path.exists(ruta_base_de_datos):
-                    st.error(f"El archivo de la base de datos no se encuentra en la ruta: {ruta_base_de_datos}")
-                else:
-                    # Conectar a la base de datos
-                    conn = sqlite3.connect(ruta_base_de_datos)
-
+                
+                @contextmanager
+                def open_db_connection_treinta_cinco(db_name):
+                    conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+                    try:
+                        yield conn
+                    finally:
+                        conn.close()
+                        
+                db_name = 'jhotem.db'       
+                # Using the context manager to manage a database connection
+                with open_db_connection_treinta_cinco('jhotem.db') as conn:
+                    conn.execute(f"USE DATABASE {db_name}")
+                    # cursor = conn.execute("""SELECT name FROM sqlite_master WHERE type='table' """)
                     # Leer todas las tablas de la base de datos en DataFrames
                     tablas = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table';", conn)
                     dataframes = {}
 
                     for tabla in tablas['name']:
                         dataframes[tabla] = pd.read_sql_query(f"SELECT * from {tabla}", conn)
+
+                    print("FUNCIONO connection_treinta_cinco")
+                
+                
+                
+                
+                # current_dir = os.path.dirname(os.path.abspath(__file__))
 
                     # Crear un archivo Excel en memoria
                     output = io.BytesIO()
@@ -2582,7 +2758,7 @@ def ajustes():
                             df.to_excel(writer, sheet_name=tabla, index=False)
 
                     # Cerrar la conexión a la base de datos
-                    conn.close()
+                    # conn.close()
 
                     # Botón para descargar el archivo Excel
                     st.download_button(
@@ -2592,37 +2768,6 @@ def ajustes():
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     )
                     
-            def download_sql():
-                # Obtener el directorio actual del script
-                current_dir = os.path.dirname(os.path.abspath(__file__))
-
-                # Ruta de la base de datos relativa al directorio actual del script
-                ruta_base_de_datos = os.path.join(current_dir, "jhotem.db")
-
-                # Verificar si el archivo de la base de datos existe
-                if not os.path.exists(ruta_base_de_datos):
-                    st.error(f"El archivo de la base de datos no se encuentra en la ruta: {ruta_base_de_datos}")
-                else:
-                    # Leer el archivo de la base de datos en formato binario
-                    with open(ruta_base_de_datos, "rb") as f:
-                        archivo_binario = f.read()
-
-                    # Crear un objeto BytesIO para simular un archivo en memoria
-                    archivo_en_memoria = io.BytesIO(archivo_binario)
-
-                    # Obtener el directorio de descargas del usuario
-                    downloads_dir = os.path.join(os.path.expanduser('~'), 'Downloads')
-
-                    # Nombre del archivo sugerido en la carpeta de descargas
-                    suggested_file_name = os.path.join(downloads_dir, os.path.basename(ruta_base_de_datos))
-
-                    # Botón para descargar el archivo de la base de datos
-                    st.download_button(
-                        label="Descargar Base de Datos",
-                        data=archivo_en_memoria,
-                        file_name=suggested_file_name,
-                        mime="application/octet-stream"
-                    )
                 
             def salir_master_key():
                 st.session_state.validated = False
@@ -2841,20 +2986,18 @@ def ajustes():
                                 # Mostrar el st.radio con las opciones
                                 selected_option = st.radio(
                                     "Elija el formato a descargar",
-                                    [":orange[Formato Excel]", ":orange[Formato Base de Datos]"],
+                                    [":orange[Formato Excel]", ":orange[Formato Base de Datos - Opcion deshabilitada]"],
                                     key="visibility",
                                     horizontal=True,
                                 )
                                 # Mostrar el contenido seleccionado
                                 if selected_option == ":orange[Formato Excel]":
                                     st.markdown(excel_file_content, unsafe_allow_html=True)
-                                elif selected_option == ":orange[Formato Base de Datos]":
+                                elif selected_option == ":orange[Formato Base de Datos - Opcion deshabilitada]":
                                     st.markdown(sql_lite_content, unsafe_allow_html=True)
                                 
                                 if st.button("Seleccionar", key="boton_selector_file"):
-                                    if selected_option ==  ":orange[Formato Base de Datos]":
-                                        download_sql()
-                                    elif selected_option == ":orange[Formato Excel]":
+                                    if selected_option == ":orange[Formato Excel]":
                                         download_excel()
                                 streamlit_space.space(container=None, lines=1)
                                 
@@ -3001,15 +3144,22 @@ def ajustes():
                 
 # Pagina Clientes
 def home():
+    @contextmanager
+    def open_db_connection_uno(db_name):
+        conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+        try:
+            yield conn
+        finally:
+            conn.close()
+            
+    db_name = 'jhotem.db'       
+    # Using the context manager to manage a database connection
+    with open_db_connection_uno('jhotem.db') as conn:
+        conn.execute(f"USE DATABASE {db_name}")
+        cursor = conn.execute("SELECT * FROM clientes")
+        rows = cursor.fetchall()
+        print("FUNCIONO connection_uno")
 
-    # Carga de datos a una lista desde la base de datos jhotem.db
-    # Conectar a la base de datos
-    conn = sqlite3.connect("jhotem.db")
-    cursor = conn.cursor()
-
-    # Cargar los datos de la tabla 'clientes'
-    cursor.execute("SELECT * FROM clientes")
-    rows = cursor.fetchall()
 
     test_data_2 = [list(row) for row in rows]
     new_test_data = []
@@ -3043,19 +3193,43 @@ def home():
 
     def delete_user(identificador):
         id = int(identificador)
-
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-
-        cursor.execute(
+        
+        @contextmanager
+        def open_db_connection_dieciseis(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_dieciseis('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute(
             """
             DELETE FROM clientes
             WHERE id = ?
             """,
             (id,),
         )
+            print("FUNCIONO connection_dieciseis")
 
-        conn.commit()
+            conn.commit()
+            
+            
+        # conn = sqlite3.connect("jhotem.db")
+        # cursor = conn.cursor()
+
+        # cursor.execute(
+        #     """
+        #     DELETE FROM clientes
+        #     WHERE id = ?
+        #     """,
+        #     (id,),
+        # )
+
+        # conn.commit()
         # conn.close()
 
     def edit_user(
@@ -3079,12 +3253,20 @@ def home():
         fecha = fecha
         id = int(identificador)
 
-        # new_test_data = st.session_state.new_test_data
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-
-        # Consulta SQL corregida
-        cursor.execute(
+        
+        @contextmanager
+        def open_db_connection_diecisiete(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_diecisiete('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute(
             """
             UPDATE clientes 
             SET nombre = ?, apellido = ?, cedula = ?, telefono = ?, direccion = ?, correo_electronico = ?, nota = ?, fecha = ?
@@ -3101,10 +3283,37 @@ def home():
                 fecha,
                 id,
             ),
-        )
+        )   
+            conn.commit()
+            rows = cursor.fetchall()
+            print("FUNCIONO, connection_diecisiete")
+        
+        # new_test_data = st.session_state.new_test_data
+        # conn = sqlite3.connect("jhotem.db")
+        # cursor = conn.cursor()
 
-        conn.commit()
-        # conn.close()
+        # # Consulta SQL corregida
+        # cursor.execute(
+        #     """
+        #     UPDATE clientes 
+        #     SET nombre = ?, apellido = ?, cedula = ?, telefono = ?, direccion = ?, correo_electronico = ?, nota = ?, fecha = ?
+        #     WHERE id = ?
+        # """,
+        #     (
+        #         nombre,
+        #         apellido,
+        #         cedula,
+        #         telefono,
+        #         direccion,
+        #         correo_electronico,
+        #         nota,
+        #         fecha,
+        #         id,
+        #     ),
+        # )
+
+        # conn.commit()
+        # # conn.close()
 
     def save_new_user(
         nombre, apellido, cedula, telefono, direccion, correo_electronico, nota, fecha
@@ -3119,9 +3328,20 @@ def home():
         fecha = fecha
 
         new_test_data = st.session_state.new_test_data
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-        cursor.execute(
+        
+        @contextmanager
+        def open_db_connection_dieciocho(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_dieciocho('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute(
             "INSERT INTO clientes (nombre, apellido, cedula, telefono, direccion, correo_electronico, nota, fecha) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 nombre,
@@ -3134,13 +3354,31 @@ def home():
                 fecha,
             ),
         )
-        conn.commit()
+            print("FUNCIONO connection_dieciocho")
+        
 
         # Recargar los datos después de guardar el nuevo usuario
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM clientes")
-        rows = cursor.fetchall()
+        
+        @contextmanager
+        def open_db_connection_diecinueve(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_diecinueve('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute("SELECT * FROM clientes")
+            rows = cursor.fetchall()
+            print("FUNCIONO connection_diecinueve")
+        
+        # conn = sqlite3.connect("jhotem.db")
+        # cursor = conn.cursor()
+        # cursor.execute("SELECT * FROM clientes")
+        # rows = cursor.fetchall()
         # conn.close()
 
         st.session_state.index = len(rows) - 1  # Establecer el índice al último usuario
@@ -3391,19 +3629,23 @@ def home():
                         ) = st.columns([4, 3, 4, 3, 1.7, 1.7])
                         with column_izq:
                             # Conectar a la base de datos SQLite (o crearla si no existe)
-                            conn = sqlite3.connect('jhotem.db')
-
-                            # Crear un cursor para ejecutar consultas
-                            cursor = conn.cursor()
-
-                            # Ejecutar una consulta para encontrar el mayor número en la columna 'id'
-                            cursor.execute("SELECT MAX(id) FROM clientes")
-
-                            # Obtener el resultado de la consulta
-                            max_id = cursor.fetchone()[0]
-
-                            # Cerrar la conexión a la base de datos
-                            # conn.close()
+                            
+                            @contextmanager
+                            def open_db_connection_veinte(db_name):
+                                conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+                                try:
+                                    yield conn
+                                finally:
+                                    conn.close()
+                                    
+                            db_name = 'jhotem.db'       
+                            # Using the context manager to manage a database connection
+                            with open_db_connection_veinte('jhotem.db') as conn:
+                                conn.execute(f"USE DATABASE {db_name}")
+                                cursor = conn.execute("SELECT MAX(id) FROM clientes")
+                                max_id = cursor.fetchone()[0]
+                                print("FUNCIONO connection_veinte")
+                                
                             new_register = max_id + 1
                             st.markdown(
                                 f"<span style='font-size: 14px; color: blue; font-weight: bold;'>NUEVO CLIENTE SERÁ EL ID N° {new_register}</span>",
@@ -3472,40 +3714,71 @@ def vehiculos():
 
     # Carga de datos a una lista desde la base de datos jhotem.db
     # Conectar a la base de datos
-    conn = sqlite3.connect("jhotem.db")
-    cursor = conn.cursor()
-
-    # Cargar los datos de la tabla 'clientes'
-    cursor.execute("SELECT * FROM vehiculos")
-    rows = cursor.fetchall()
+    
+    @contextmanager
+    def open_db_connection_veintiuno(db_name):
+        conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+        try:
+            yield conn
+        finally:
+            conn.close()
+            
+    db_name = 'jhotem.db'       
+    # Using the context manager to manage a database connection
+    with open_db_connection_veintiuno('jhotem.db') as conn:
+        conn.execute(f"USE DATABASE {db_name}")
+        cursor = conn.execute("SELECT * FROM vehiculos")
+        rows = cursor.fetchall()
+        print("FUNCIONO connection_veintiuno")
+        
 
     test_data_veh = [list(row) for row in rows]
     new_test_data_veh = []
 
-    # Consulta para obtener los datos de la tabla vehiculos junto con el nombre del cliente
-    cursor.execute(
+    
+    @contextmanager
+    def open_db_connection_veintidos(db_name):
+        conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+        try:
+            yield conn
+        finally:
+            conn.close()
+            
+    db_name = 'jhotem.db'       
+    # Using the context manager to manage a database connection
+    with open_db_connection_veintidos('jhotem.db') as conn:
+        conn.execute(f"USE DATABASE {db_name}")
+        cursor = conn.execute(
         """
         SELECT v.vehiculos_id, c.nombre, c.apellido, v.marca, v.modelo, v.year, v.placa, v.fecha_entrada, v.observaciones
         FROM vehiculos v
         JOIN clientes c ON v.cliente_id = c.id
     """
     )
-    filas = cursor.fetchall()
-
-    # print(filas)
+        filas = cursor.fetchall()
+        print("FUNCIONO connection_veitindos")
 
     # Crear la conexión a la base de datos
-    conn = sqlite3.connect("jhotem.db")
-    cursor = conn.cursor()
-
-    # Consulta para obtener los valores de los campos 'nombre' y 'apellido' junto con 'id' de la tabla 'clientes'
-    cursor.execute(
+    @contextmanager
+    def open_db_connection_veintitres(db_name):
+        conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+        try:
+            yield conn
+        finally:
+            conn.close()
+            
+    db_name = 'jhotem.db'       
+    # Using the context manager to manage a database connection
+    with open_db_connection_veintitres('jhotem.db') as conn:
+        conn.execute(f"USE DATABASE {db_name}")
+        cursor = conn.execute(
         """
     SELECT nombre, apellido FROM clientes
     """
     )
-    clientes_veh = cursor.fetchall()
-
+        clientes_veh = cursor.fetchall()
+        print("FUNCIONO connection_veintitres")
+    
     # Unificación de nombre y apellido del cliente
     temporal_veh = []
     for cliente in clientes_veh:
@@ -3516,12 +3789,26 @@ def vehiculos():
     # print(temporal_veh)
 
     # Consulta para obtener los valores de los campos 'nombre' y 'apellido' junto con 'id' de la tabla 'clientes'
-    cursor.execute(
+    @contextmanager
+    def open_db_connection_veinticuatro(db_name):
+        conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+        try:
+            yield conn
+        finally:
+            conn.close()
+            
+    db_name = 'jhotem.db'       
+    # Using the context manager to manage a database connection
+    with open_db_connection_veinticuatro('jhotem.db') as conn:
+        conn.execute(f"USE DATABASE {db_name}")
+        cursor = conn.execute(
         """
     SELECT id FROM clientes
     """
     )
-    clientes_id_capture = cursor.fetchall()
+        clientes_id_capture = cursor.fetchall()
+        print("FUNCIONO connection_veinticuatro")
+    
 
     # print(clientes_id_capture)
 
@@ -3595,19 +3882,31 @@ def vehiculos():
     def delete_vehicle(identificador):
         id = int(identificador)
 
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-
-        cursor.execute(
+        
+        @contextmanager
+        def open_db_connection_veinticinco(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_veinticinco('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute(
             """
             DELETE FROM vehiculos
             WHERE vehiculos_id = ?
             """,
             (id,),
         )
+            conn.commit()
+            
+            print("FUNCIONO connection_veinticinco")
+            
 
-        conn.commit()
-        # conn.close()
 
     def edit_user_veh(
         marca_veh,
@@ -3643,11 +3942,20 @@ def vehiculos():
         cliente_id = posiciones[0]
 
         # new_test_data = st.session_state.new_test_data
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-
-        # Consulta SQL corregida
-        cursor.execute(
+        
+        @contextmanager
+        def open_db_connection_veintiseis(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_veintiseis('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute(
             """
             UPDATE vehiculos
             SET marca = ?, modelo = ?, year = ?, placa = ?, fecha_entrada = ?, observaciones = ?, cliente_id = ?
@@ -3664,10 +3972,9 @@ def vehiculos():
                 vehiculos_id,
             ),
         )
-
-        conn.commit()
-        # conn.close()
-
+            conn.commit()
+            print("FUNCIONO connection_veintiseis")
+        
     def save_new_vehicle(
         selector_veh_new,
         marca_veh_new,
@@ -3697,9 +4004,20 @@ def vehiculos():
         cliente_id = clave
 
         # print (f"Este es el valor del cliente_id {cliente_id}")
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-        cursor.execute(
+        
+        @contextmanager
+        def open_db_connection_veintisiete(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_veintisiete('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute(
             "INSERT INTO vehiculos (cliente_id, marca, modelo, year, placa, fecha_entrada, observaciones) VALUES (?, ?, ?, ?, ?, ?, ?)",
             (
                 cliente_id,
@@ -3710,16 +4028,45 @@ def vehiculos():
                 fecha,
                 observaciones,
             ),
-        )
-        conn.commit()
+        )   
+            conn.commit()
+            print("FUNCIONO connection_veintisiete")
+        
+        
+        # conn = sqlite3.connect("jhotem.db")
+        # cursor = conn.cursor()
+        # cursor.execute(
+        #     "INSERT INTO vehiculos (cliente_id, marca, modelo, year, placa, fecha_entrada, observaciones) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        #     (
+        #         cliente_id,
+        #         marca,
+        #         modelo,
+        #         year,
+        #         placa,
+        #         fecha,
+        #         observaciones,
+        #     ),
+        # )
+        # conn.commit()
 
         # Recargar los datos después de guardar el nuevo usuario
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM vehiculos")
-        rows = cursor.fetchall()
-        # conn.close()
-
+        
+        @contextmanager
+        def open_db_connection_veintiocho(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_veintiocho('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute("SELECT * FROM vehiculos")
+            rows = cursor.fetchall()
+            print("FUNCIONO connection_veintiocho")
+        
         st.session_state.index_veh = (
             len(rows) - 1
         )  # Establecer el índice al último usuario
@@ -4007,19 +4354,24 @@ def vehiculos():
                             # streamlit_space.space(container=None, lines=0)
 
                             new_register = len(test_data_veh) + 1
-                            conn = sqlite3.connect('jhotem.db')
+                            
+                            @contextmanager
+                            def open_db_connection_treinta_seis(db_name):
+                                conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+                                try:
+                                    yield conn
+                                finally:
+                                    conn.close()
+                                    
+                            db_name = 'jhotem.db'       
+                            # Using the context manager to manage a database connection
+                            with open_db_connection_treinta_seis('jhotem.db') as conn:
+                                conn.execute(f"USE DATABASE {db_name}")
+                                cursor = conn.execute("SELECT MAX(vehiculos_id) FROM vehiculos")
+                                max_id = cursor.fetchone()[0]
+                                print("FUNCIONO connection_treinta_seis")
 
-                            # Crear un cursor para ejecutar consultas
-                            cursor = conn.cursor()
-
-                            # Ejecutar una consulta para encontrar el mayor número en la columna 'id'
-                            cursor.execute("SELECT MAX(vehiculos_id) FROM vehiculos")
-
-                            # Obtener el resultado de la consulta
-                            max_id = cursor.fetchone()[0]
-
-                            # Cerrar la conexión a la base de datos
-                            # conn.close()
+                            
                             new_register = max_id + 1
                             st.markdown(
                                 f"<span style='font-size: 14px; color: blue; font-weight: bold;'>NUEVO VEHÍCULO SERÁ EL ID N° {new_register}</span>",
@@ -4090,12 +4442,22 @@ def vehiculos():
 def repuestos():
     # Carga de datos a una lista desde la base de datos jhotem.db
     # Conectar a la base de datos
-    conn = sqlite3.connect("jhotem.db")
-    cursor = conn.cursor()
-
-    # Cargar los datos de la tabla 'clientes'
-    cursor.execute("SELECT * FROM repuestos")
-    rows = cursor.fetchall()
+    
+    @contextmanager
+    def open_db_connection_veintinueve(db_name):
+        conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+        try:
+            yield conn
+        finally:
+            conn.close()
+            
+    db_name = 'jhotem.db'       
+    # Using the context manager to manage a database connection
+    with open_db_connection_veintinueve('jhotem.db') as conn:
+        conn.execute(f"USE DATABASE {db_name}")
+        cursor = conn.execute("SELECT * FROM repuestos")
+        rows = cursor.fetchall()
+        print("FUNCIONO connection_veintinueve")
 
     test_data_rep = [list(row) for row in rows]
     new_test_data_rep = []
@@ -4138,20 +4500,29 @@ def repuestos():
     def delete_repuesto(identificador):
         Id_repuestos = int(identificador)
 
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-
-        cursor.execute(
+        @contextmanager
+        def open_db_connection_treinta(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_treinta('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute(
             """
             DELETE FROM repuestos
             WHERE Id_repuestos = ?
             """,
             (Id_repuestos,),
-        )
-
-        conn.commit()
-        # conn.close()
-
+        )   
+            conn.commit()
+            
+            print("FUNCIONO connection_treinta")
+        
     def edit_user_rep(
         descripcion_rep,
         costo_rep,
@@ -4168,11 +4539,20 @@ def repuestos():
         Id_repuestos = int(identificador)
 
         # new_test_data = st.session_state.new_test_data
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-
-        # Consulta SQL corregida
-        cursor.execute(
+        
+        @contextmanager
+        def open_db_connection_treinta_uno(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_treinta_uno('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute(
             """
             UPDATE repuestos
             SET Descripcion = ?, Costo = ?, Proveedor = ?, Precio_de_Venta = ?, Margen = ?
@@ -4186,11 +4566,11 @@ def repuestos():
                 margen,
                 Id_repuestos,
             ),
-        )
-
-        conn.commit()
-        # conn.close()
-
+        )   
+            conn.commit()
+            
+            print("FUNCIONO connection_treinta_uno")
+        
     def save_new_repuesto(
         descripcion_rep_new,
         costo_rep_new,
@@ -4204,9 +4584,19 @@ def repuestos():
         margen = Margen_rep_new
         precio_de_venta = precio_de_venta_new_rep
 
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-        cursor.execute(
+        @contextmanager
+        def open_db_connection_treinta_dos(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_treinta_dos('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute(
             "INSERT INTO repuestos (Descripcion, Costo, Proveedor, Margen, Precio_de_Venta) VALUES (?, ?, ?, ?, ?)",
             (
                 descripcion,
@@ -4215,15 +4605,27 @@ def repuestos():
                 margen,
                 precio_de_venta,
             ),
-        )
-        conn.commit()
-
+        )   
+            conn.commit()
+            print("FUNCIONO connection_treinta_dos")
+        
         # Recargar los datos después de guardar el nuevo usuario
-        conn = sqlite3.connect("jhotem.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM repuestos")
-        rows = cursor.fetchall()
-        # conn.close()
+        @contextmanager
+        def open_db_connection_treinta_tres(db_name):
+            conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+            try:
+                yield conn
+            finally:
+                conn.close()
+                
+        db_name = 'jhotem.db'       
+        # Using the context manager to manage a database connection
+        with open_db_connection_treinta_tres('jhotem.db') as conn:
+            conn.execute(f"USE DATABASE {db_name}")
+            cursor = conn.execute("SELECT * FROM repuestos")
+            rows = cursor.fetchall()
+            print("FUNCIONO connection_treinta_tres")
+        
 
         st.session_state.index_rep = (
             len(rows) - 1
@@ -4485,20 +4887,25 @@ def repuestos():
                             column_tres,
                         ) = st.columns([3, 0.5, 3, 1])
                         with column_izq:
+                            
+                            @contextmanager
+                            def open_db_connection_treinta_cuatro(db_name):
+                                conn = sqlitecloud.connect("sqlitecloud://cz7ig9e6sk.sqlite.cloud:8860?apikey=yvHUJJbgxNRa3bFERweuVHFvTOnhO67LgwabT0NW4TY")
+                                try:
+                                    yield conn
+                                finally:
+                                    conn.close()
+                                    
+                            db_name = 'jhotem.db'       
+                            # Using the context manager to manage a database connection
+                            with open_db_connection_treinta_cuatro('jhotem.db') as conn:
+                                conn.execute(f"USE DATABASE {db_name}")
+                                cursor = conn.execute("SELECT MAX(Id_repuestos) FROM repuestos")
+                                max_id = cursor.fetchone()[0]
+                                print("FUNCIONO connection_treinta_cuatro")
+                                
+                                
                             # streamlit_space.space(container=None, lines=0)
-                            conn = sqlite3.connect('jhotem.db')
-
-                            # Crear un cursor para ejecutar consultas
-                            cursor = conn.cursor()
-
-                            # Ejecutar una consulta para encontrar el mayor número en la columna 'id'
-                            cursor.execute("SELECT MAX(Id_repuestos) FROM repuestos")
-
-                            # Obtener el resultado de la consulta
-                            max_id = cursor.fetchone()[0]
-
-                            # Cerrar la conexión a la base de datos
-                            # conn.close()
                             new_register = max_id + 1
                             st.markdown(
                                 f"<span style='font-size: 14px; color: blue; font-weight: bold;'>NUEVO REPUESTO SERÁ EL ID N° {new_register}</span>",
@@ -4624,4 +5031,4 @@ if __name__ == "__main__":
     page = st.session_state.page
     pages[page]()
 
-# Cierre de la version inicial 31-08-2024
+# Cierre de la version dos 26-09-2024
