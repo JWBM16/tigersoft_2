@@ -5,6 +5,7 @@ import os
 import sqlite3
 import sqlitecloud
 import time
+
 from datetime import datetime
 from io import BytesIO
 from contextlib import contextmanager
@@ -31,7 +32,7 @@ from st_aggrid.grid_options_builder import GridOptionsBuilder
 from st_aggrid.shared import GridUpdateMode, JsCode
 from streamlit_option_menu import option_menu
 from streamlit_space import space
-from streamlit_vizzu import VizzuChart, Config, Data
+# from streamlit_vizzu import VizzuChart, Config, Data
 from ipyvizzu import Chart, Data, Config, Style, DisplayTarget
 from ipyvizzustory import Story, Slide, Step
 import agstyler
@@ -4032,23 +4033,6 @@ def vehiculos():
             conn.commit()
             print("FUNCIONO connection_veintisiete")
         
-        
-        # conn = sqlite3.connect("jhotem.db")
-        # cursor = conn.cursor()
-        # cursor.execute(
-        #     "INSERT INTO vehiculos (cliente_id, marca, modelo, year, placa, fecha_entrada, observaciones) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        #     (
-        #         cliente_id,
-        #         marca,
-        #         modelo,
-        #         year,
-        #         placa,
-        #         fecha,
-        #         observaciones,
-        #     ),
-        # )
-        # conn.commit()
-
         # Recargar los datos después de guardar el nuevo usuario
         
         @contextmanager
