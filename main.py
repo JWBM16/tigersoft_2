@@ -250,7 +250,7 @@ def presptosql(
             )   
     print("FUNCIONO connection_tres")
     
-    st.rerun()
+    # st.rerun()
 
 
 # BUDGET: FIN DE BLOQUE NUEVO 2024-08-06
@@ -500,10 +500,8 @@ with open_db_connection_siete('jhotem.db') as conn:
     print("FUNCIONO connection_siete")
     column_names_siete = [description[0] for description in cursor.description]
 
-# conn = sqlite3.connect("jhotem.db")
 
-# # FIXME: Consulta SQL para obtener todos los datos de la tabla Presupuesto
-# query = "SELECT * FROM Presupuesto"
+# FIXME: Consulta SQL para obtener todos los datos de la tabla Presupuesto
 
 # Ejecutar la consulta y cargar los resultados en un DataFrame
 df_presupuestos = pd.DataFrame(filas_siete, columns=column_names_siete)
@@ -625,6 +623,12 @@ def borrar_presupuesto(id_presupuesto):
             """,
                 (id_presupuesto,),
             )
+            st.toast("Optimizando")
+            time.sleep(0.5)
+            st.toast("Haciendo los cambios en la Base de Datos")
+            time.sleep(0.5)
+            st.toast("Listo", icon="🎉")
+            time.sleep(0.5)
             print("FUNCIONO connection_ocho")
 
         except sqlite3.Error as e:
@@ -664,6 +668,12 @@ def aprobar_presupuesto(id_presupuesto):
             # Confirmar los cambios
             conn.commit()
             print(f"Presupuesto con IdPresupuesto {id_presupuesto} ha sido aprobado.")
+            st.toast("Optimizando")
+            time.sleep(0.5)
+            st.toast("Haciendo los cambios en la Base de Datos")
+            time.sleep(0.5)
+            st.toast("Listo", icon="🎉")
+            time.sleep(0.5)
             print("FUNCIONO connection_nueve")
 
         except sqlite3.Error as e:
@@ -726,9 +736,9 @@ def advertencia(presupuesto_id):
         with adv_cent:
             if st.button(" Si, Borrar ✅", key="adv_button_delete"):
                 with st.spinner("Borrando registros..."):
-                    time.sleep(2)
+                    time.sleep(1)
                 st.write("Borrando Presupuesto")
-                time.sleep(2)
+                time.sleep(1)
                 borrar_presupuesto(budget_id)
             else:
                 with adv_der:
@@ -794,13 +804,6 @@ with open_db_connection_diez('jhotem.db') as conn:
     usuarios_activos = cursor.fetchall()
     print("FUNCIONO conexion diez")
 
-# Conectar a la base de datos SQLite
-# conn = sqlite3.connect('jhotem.db')
-# cursor = conn.cursor()
-
-# # Consultar los usuarios activos
-# cursor.execute("SELECT usuario, clave FROM usuarios WHERE estatus = 'activo'")
-# usuarios_activos = cursor.fetchall()
 
 # Crear la base de datos de usuarios simulada
 users_db = {}
@@ -2112,7 +2115,12 @@ def presupuestos():
                                     elemento_vehiculo_id,
                                     elemento_observaciones_veh,
                                 )
-                                toast()
+                                st.toast("Optimizando")
+                                time.sleep(0.5)
+                                st.toast("Haciendo los cambios en la Base de Datos")
+                                time.sleep(0.5)
+                                st.toast("Listo", icon="🎉")
+                                time.sleep(0.5)
                                 st.rerun()
 
                     # FIXME: INICIO DE TABLA AGGRID
@@ -2562,12 +2570,6 @@ def ajustes():
         print("FUNCIONO connection_doce")
     
     
-    # conn = sqlite3.connect("jhotem.db")
-    # cursor = conn.cursor()
-    
-    # # Cargar los datos de la tabla 'clientes'
-    # cursor.execute("SELECT * FROM usuarios")
-    # rows = cursor.fetchall()
     
     test_data_usuarios = [list(row) for row in rows]
     # print(test_data_usuarios)
@@ -3163,6 +3165,10 @@ def home():
 
 
     test_data_2 = [list(row) for row in rows]
+    
+    print(test_data_2[2])
+    
+    
     new_test_data = []
     if "index" not in st.session_state:
         st.session_state.index = 0
@@ -3191,6 +3197,10 @@ def home():
         if st.session_state.index > 0:
             st.session_state.index -= 1
         st.session_state.is_saved = False  # ADDED
+        
+    def first_user():
+        st.session_state.index = 0
+        st.session_state.is_saved = False  # ADDED
 
     def delete_user(identificador):
         id = int(identificador)
@@ -3218,21 +3228,9 @@ def home():
 
             conn.commit()
             
+                
+                
             
-        # conn = sqlite3.connect("jhotem.db")
-        # cursor = conn.cursor()
-
-        # cursor.execute(
-        #     """
-        #     DELETE FROM clientes
-        #     WHERE id = ?
-        #     """,
-        #     (id,),
-        # )
-
-        # conn.commit()
-        # conn.close()
-
     def edit_user(
         nombre,
         apellido,
@@ -3289,33 +3287,6 @@ def home():
             rows = cursor.fetchall()
             print("FUNCIONO, connection_diecisiete")
         
-        # new_test_data = st.session_state.new_test_data
-        # conn = sqlite3.connect("jhotem.db")
-        # cursor = conn.cursor()
-
-        # # Consulta SQL corregida
-        # cursor.execute(
-        #     """
-        #     UPDATE clientes 
-        #     SET nombre = ?, apellido = ?, cedula = ?, telefono = ?, direccion = ?, correo_electronico = ?, nota = ?, fecha = ?
-        #     WHERE id = ?
-        # """,
-        #     (
-        #         nombre,
-        #         apellido,
-        #         cedula,
-        #         telefono,
-        #         direccion,
-        #         correo_electronico,
-        #         nota,
-        #         fecha,
-        #         id,
-        #     ),
-        # )
-
-        # conn.commit()
-        # # conn.close()
-
     def save_new_user(
         nombre, apellido, cedula, telefono, direccion, correo_electronico, nota, fecha
     ):
@@ -3376,11 +3347,6 @@ def home():
             rows = cursor.fetchall()
             print("FUNCIONO connection_diecinueve")
         
-        # conn = sqlite3.connect("jhotem.db")
-        # cursor = conn.cursor()
-        # cursor.execute("SELECT * FROM clientes")
-        # rows = cursor.fetchall()
-        # conn.close()
 
         st.session_state.index = len(rows) - 1  # Establecer el índice al último usuario
         return [list(row) for row in rows]
@@ -3529,7 +3495,12 @@ def home():
                                 boton_2 = st.button(
                                     "Siguiente", key="siguiente", on_click=next_user
                                 )
-
+                            def caller_prev_user():
+                                prev_user()
+                                
+                            def caller_next_user():
+                                next_user()   
+                                
                     # CONTAINER BODY: BODY
                     with st.container(height=350, border=True):
                         izquierda, derecha = st.columns(2)
@@ -3614,8 +3585,17 @@ def home():
                                     identificador,
                                 )
                             if boton_elimi_clien:
-                                toast()
-                                delete_user(identificador)
+                                last_element = test_data_2[-1]
+                                if last_element[0] == identificador:
+                                    caller_prev_user()
+                                    delete_user(identificador)
+                                    toast()
+                                    st.rerun()
+                                else:
+                                    caller_next_user()
+                                    delete_user(identificador)
+                                    toast()
+                                    st.rerun()
                                 
                 # FICHA NUEVOS CLIENTES
                 with tab1:
@@ -3694,7 +3674,6 @@ def home():
                             )
                         if not st.session_state.is_saved:
                             if boton_1_tab1:
-                                toast()
 
                                 st.session_state.is_saved = True
                                 save_new_user(
@@ -3707,6 +3686,8 @@ def home():
                                     observaciones_new,
                                     fecha_new,
                                 )
+                                toast()
+                                st.rerun()
                     # Tab de Reportes
 
 
@@ -4234,6 +4215,12 @@ def vehiculos():
                                         on_click=next_user,
                                         key="siguiente_veh",
                                     )
+                                    
+                                def caller_prev_user_veh():
+                                    prev_user()
+                                
+                                def caller_next_user_veh():
+                                    next_user() 
                     # CONTAINER BODY: BODY
 
                     with st.container(height=350, border=True):
@@ -4320,8 +4307,17 @@ def vehiculos():
                                 identificador,
                             )
                         if boton_elimi_clien_veh:
-                            toast()
-                            delete_vehicle(identificador)
+                            last_element = test_data_veh[-1]
+                            if last_element[0] == identificador:
+                                caller_prev_user_veh()
+                                delete_vehicle(identificador)
+                                toast()
+                                st.rerun()
+                            else:
+                                caller_prev_user_veh()
+                                delete_vehicle(identificador)
+                                toast()
+                                st.rerun()
                             
                 # FICHA NUEVOS VEHICULOS
                 with tab1:
@@ -4406,7 +4402,6 @@ def vehiculos():
                             )
                         # if not st.session_state.is_saved:
                             if boton_save_new_veh:
-                                toast()
 
                                 st.session_state.is_saved = True
                                 save_new_vehicle(
@@ -4419,6 +4414,7 @@ def vehiculos():
                                     observaciones_veh_new,
                                     temporal_veh,
                                 )
+                                toast()
                                 st.rerun()
 
 
@@ -4777,6 +4773,14 @@ def repuestos():
                                         key="siguiente_rep",
                                         on_click=next_rep,
                                     )
+                                
+                                def caller_prev_user_rep():
+                                    prev_rep()
+                                
+                                def caller_next_user_rep():
+                                    next_rep()
+                                    
+                                    
                     # # CONTAINER BODY: BODY
                     with st.container(height=350, border=True):
                         izquierda_rep, derecha_rep = st.columns(2)
@@ -4859,8 +4863,18 @@ def repuestos():
                                     identificador,
                                 )
                         if boton_elimi_repuesto:
-                            toast()
-                            delete_repuesto(identificador)
+                            last_element = test_data_rep[-1]
+                            if last_element[0] == identificador:
+                                caller_prev_user_rep()
+                                delete_repuesto(identificador)
+                                toast()
+                                st.rerun()
+                            else:
+                                caller_prev_user_rep()
+                                delete_repuesto(identificador)
+                                toast()
+                                st.rerun()
+                                
                 # FICHA NUEVOS REPUESTOS
                 with tab1:
                     with st.container(height=50, border=False):
