@@ -3738,7 +3738,7 @@ def vehiculos():
     """
     )
         filas = cursor.fetchall()
-        print("FUNCIONO connection_veitindos")
+        print("FUNCIONO connection_veintidos")
 
     # Crear la conexión a la base de datos
     @contextmanager
@@ -3792,7 +3792,7 @@ def vehiculos():
         print("FUNCIONO connection_veinticuatro")
     
 
-    # print(clientes_id_capture)
+    print(f"Clientes_id_capture: {clientes_id_capture}")
 
     # Convertir las tuplas en clientes_id_capture a enteros
     clientes_id_capture_cleaned = [int(str(item)[1:-2]) for item in clientes_id_capture]
@@ -4347,7 +4347,7 @@ def vehiculos():
                             # Using the context manager to manage a database connection
                             with open_db_connection_treinta_seis('jhotem.db') as conn:
                                 conn.execute(f"USE DATABASE {db_name}")
-                                cursor = conn.execute("SELECT MAX(vehiculos_id) FROM vehiculos")
+                                cursor = conn.execute("SELECT MAX() FROM vehiculos")
                                 max_id = cursor.fetchone()[0]
                                 print("FUNCIONO connection_treinta_seis")
 
@@ -4717,14 +4717,14 @@ def repuestos():
                             df_filtered_rep = df_report_rep
 
                         # Dividir la columna "Margen" entre 100
-                        df_filtered_rep["Margen"] = df_filtered_rep["Margen"] / 100
+                        # df_filtered_rep["Margen"] = df_filtered_rep["Margen"] / 100
 
                         # Aplicar formato
                         df_filtered_rep = df_filtered_rep.style.format(
                             {
                                 "Costo": "${:,.2f}",
                                 "Precio_de_Venta": "${:,.2f}",
-                                "Margen": "{:.2%}",
+                                "Margen": "${:,.2f}",
                             }
                         )
                         st.table(df_filtered_rep)
@@ -4805,8 +4805,8 @@ def repuestos():
                                 on_change=None,
                                 key=f"costo_rep_{current_user[0]}",
                             )
-                            Margen = st.number_input(
-                                "Ganacia en (%) :",
+                            margen = st.number_input(
+                                "Ganacia en USD :",
                                 value=current_user[5],
                                 on_change=None,
                                 key=f"margen_rep_{current_user[0]}",
@@ -4814,14 +4814,14 @@ def repuestos():
                             if (
                                 costo is not None
                                 and costo != ""
-                                and Margen is not None
-                                and Margen != 0
+                                and margen is not None
+                                and margen != 0
                             ):
                                 costo = float(costo)
-                                Margen = float(Margen)
-                                margen_porcen_rep = Margen / 100
-                                factor = 1 + margen_porcen_rep
-                                precio_de_venta_rep = costo * factor
+                                margen_float = float(margen)
+                                # margen_porcen_rep = Margen / 100
+                                # factor = 1 + margen_porcen_rep
+                                precio_de_venta_rep = costo + margen_float
                                 container = st.container()
                                 precio_formateado = "${:,.2f}".format(
                                     precio_de_venta_rep
@@ -4858,7 +4858,7 @@ def repuestos():
                                     descripcion,
                                     costo,
                                     proveedor,
-                                    Margen,
+                                    margen_float,
                                     precio_de_venta_rep,
                                     identificador,
                                 )
@@ -4936,12 +4936,12 @@ def repuestos():
                             costo_rep_new = st.number_input(
                                 "Costo en USD :",
                                 min_value=0,
-                                max_value=10000,
+                                max_value=100000,
                                 step=1,
                                 key="costo_new_rep",
                             )
-                            Margen_rep_new = st.number_input(
-                                "Ganancia en (%) :",
+                            margen_rep_new = st.number_input(
+                                "Ganancia en USD:",
                                 step=1,
                                 key="margen_new_rep",
                             )
@@ -4949,14 +4949,14 @@ def repuestos():
                             if (
                                 costo_rep_new is not None
                                 or costo_rep_new != 0
-                                or Margen_rep_new is not None
-                                or Margen_rep_new != 0
+                                or margen_rep_new is not None
+                                or margen_rep_new != 0
                             ):
                                 costo_rep_new = float(costo_rep_new)
-                                Margen_rep_new = float(Margen_rep_new)
-                                margen_porcen_new_rep = Margen_rep_new / 100
-                                factor = 1 + margen_porcen_new_rep
-                                precio_de_venta_new_rep = costo_rep_new * factor
+                                margen_rep_new = float(margen_rep_new)
+                                # margen_porcen_new_rep = Margen_rep_new / 100
+                                # factor = 1 + margen_porcen_new_rep
+                                precio_de_venta_new_rep = costo_rep_new + margen_rep_new
                                 container = st.container()
                                 precio_formateado = "${:,.2f}".format(
                                     precio_de_venta_new_rep
@@ -4994,7 +4994,7 @@ def repuestos():
                                     descripcion_rep_new != ""
                                     and proveedor_rep_new != ""
                                     and costo_rep_new != ""
-                                    and Margen_rep_new != ""
+                                    and margen_rep_new != ""
                                 ):
                                     # Guardar en la base de datos
 
@@ -5004,7 +5004,7 @@ def repuestos():
                                         descripcion_rep_new,
                                         costo_rep_new,
                                         proveedor_rep_new,
-                                        Margen_rep_new,
+                                        margen_rep_new,
                                         precio_de_venta_new_rep,
                                     )
                                     st.rerun()
