@@ -4347,7 +4347,7 @@ def vehiculos():
                             # Using the context manager to manage a database connection
                             with open_db_connection_treinta_seis('jhotem.db') as conn:
                                 conn.execute(f"USE DATABASE {db_name}")
-                                cursor = conn.execute("SELECT MAX() FROM vehiculos")
+                                cursor = conn.execute("SELECT MAX(vehiculos_id) FROM vehiculos")
                                 max_id = cursor.fetchone()[0]
                                 print("FUNCIONO connection_treinta_seis")
 
